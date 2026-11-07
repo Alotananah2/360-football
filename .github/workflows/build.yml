@@ -1,0 +1,30 @@
+name: Build APK
+on:
+  push:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unzip project
+        run: |
+          if [ ! -f 360-Football.zip ]; then echo "Upload 360-Football.zip first"; exit 0; fi
+          unzip -q -o 360-Football.zip
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Build APK
+        run: |
+          [ -d 360Football ] || exit 0
+          cd 360Football
+          chmod +x gradlew
+          ./gradlew --no-daemon assembleRelease
+          mkdir -p ../dist
+          cp app/build/outputs/apk/release/app-release.apk ../dist/360-Football.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: 360-Football-APK
+          path: dist/*.apk
+          if-no-files-found: ignore
